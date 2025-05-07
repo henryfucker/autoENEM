@@ -10,7 +10,7 @@ function loadScript(url, id, callback) {
   let script = document.createElement('script');
   script.src = url;
   script.id = id;
-  script.onload = callback;  // Quando o script for carregado, chama a função callback
+  script.onload = callback;
   document.body.appendChild(script);
 }
 
@@ -58,43 +58,18 @@ function autoClick() {
         }, 1000);
       }
     } else {
-      Swal.fire('Finalizado', 'Todos os cliques foram feitos!', 'success').then(() => {
-        window.location.reload();
-      });
+      alert('Finalizado! Todos os cliques foram feitos!\n\nby: henryucker - 1° ano');
+      window.location.reload();
     }
   }
 
   clickNext();
 }
 
-loadCss('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css', 'sweetAlertCss');
-loadScript('https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js', 'sweetAlertJs', () => {
-  loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
-  loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin', () => {
-    Swal.fire({
-      title: 'AutoENEM',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2 style="color: #4CAF50;">Bem-vindo ao AutoENEM!</h2>
-          <p style="font-size: 16px;">by: <strong>henryfucker</strong></p>
-          <p><strong>Instruções:</strong></p>
-          <ul>
-            <li>Este script clica automaticamente nas opções corretas das lições (lições 3, 4, 17 e 18).</li>
-            <li>Cada clique é feito a cada 2 segundos para evitar erros.</li>
-            <li>Quando terminar, ele vai te avisar e se destruir automaticamente, sem interferir mais no seu navegador.</li>
-          </ul>
-          <p style="font-size: 14px; color: #888;">Espero que eu tenha ajudado! Clique no botão abaixo para começar e aproveite!</p>
-          <p><em>⚡ A automação está a caminho... ⚡</em></p>
-        </div>
-      `,
-      confirmButtonText: 'Começar',
-      confirmButtonColor: '#4CAF50',
-      background: '#f9f9f9',
-      padding: '2em',
-      showCloseButton: true,
-      icon: 'info',
-    }).then(() => {
-      autoClick();
-    });
-  });
+loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
+
+loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin', () => {
+  alert('Ao clicar em "OK", o processo vai começar a responder automaticamente.\n\nby: henryucker - 1° ano');
+  showToast('Automação iniciada!');
+  autoClick();
 });
