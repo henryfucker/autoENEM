@@ -1,3 +1,39 @@
+function loadCss(url, id) {
+    if (!document.getElementById(id)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.id = id;
+        link.onerror = () => console.error(`Erro ao carregar CSS: ${url}`);
+        document.head.appendChild(link);
+    }
+}
+
+function loadScript(url, id, callback) {
+    if (!document.getElementById(id)) {
+        const script = document.createElement('script');
+        script.src = url;
+        script.id = id;
+        script.onload = callback;
+        script.onerror = () => console.error(`Erro ao carregar script: ${url}`);
+        document.body.appendChild(script);
+    }
+}
+
+function showToast(message) {
+    if (typeof Toastify === 'object') {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "center",
+            backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+        }).showToast();
+    } else {
+        console.log("Toast (simulado):", message);
+    }
+}
+
 function autoClick() {
     const respostasCorretas = [
         "Ressaltam a distribuição espacial dos fenômenos e os fatores de localização.",
@@ -20,84 +56,75 @@ function autoClick() {
     let index = 0;
     let interval;
 
-    function clickNext() {
-        if (index < respostasCorretas.length) {
-            const divsResposta = document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa');
-            
-            if (divsResposta.length === 0) {
-                showToast('Nenhuma div de resposta encontrada!');
-                clearInterval(interval);
+    function processarResposta() {
+        if (index >= respostasCorretas.length) {
+            clearInterval(interval);
+            showToast('✅ Concluído! Todas as respostas foram selecionadas.');
+            return;
+        }
+
+        const respostaAtual = respostasCorretas[index];
+        const todasDivs = Array.from(document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa, .questao-opcao'));
+
+        if (index === 2) {
+            const imgAlvo = document.querySelector(`img[src="${respostaAtual}"]`);
+            if (imgAlvo) {
+                const divPai = imgAlvo.closest('.led-questao-resposta, .led-questao-alternativa, .questao-opcao');
+                if (divPai) {
+                    executarClickeScroll(divPai, index);
+                    index++;
+                    return;
+                }
+            }
+        }
+
+        for (const div of todasDivs) {
+            if (div.textContent.trim().includes(respostaAtual)) {
+                executarClickeScroll(div, index);
+                index++;
                 return;
             }
+        }
 
-            let elementoEncontrado = null;
-            const respostaAtual = respostasCorretas[index];
-            
-            for (let div of divsResposta) {
-                if (index === 2) {
-                    const img = div.querySelector('img.img-min-width-250');
-                    if (img && img.src === respostaAtual) {
-                        elementoEncontrado = div;
-                        break;
-                    }
-                } else {
-                    const textoDiv = div.textContent.trim();
-                    if (textoDiv.includes(respostaAtual)) {
-                        elementoEncontrado = div;
-                        break;
-                    }
-                }
-            }
+        showToast(`⚠️ Resposta ${index + 1} não encontrada! Pulando...`);
+        index++;
+    }
 
-            if (elementoEncontrado) {
-                elementoEncontrado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function executarClickeScroll(div, idx) {
+        div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast(`🔍 Selecionando resposta ${idx + 1}/${respostasCorretas.length}`);
 
-                let textoResposta = respostaAtual;
-                if (index === 2) {
-                    textoResposta = "Resposta com imagem específica";
-                } else if (!textoResposta) {
-                    textoResposta = elementoEncontrado.textContent.trim().substring(0, 50) + '...';
-                }
+        setTimeout(() => {
 
-                showToast(`Resposta correta: ${textoResposta} (${index + 1}/${respostasCorretas.length})`);
+            const elementosClicaveis = div.querySelectorAll(`
+                input[type="radio"], 
+                input[type="checkbox"], 
+                label, 
+                button, 
+                [onclick], 
+                .checkmark, 
+                .radio-button
+            `);
 
-                setTimeout(() => {
-                    const input = elementoEncontrado.querySelector('input[type="radio"]');
-                    
-                    if (input) {
-                        input.click();
-
-                        if (!input.checked) {
-                            const label = document.querySelector(`label[for="${input.id}"]`);
-                            if (label) {
-                                label.click();
-                            }
-                        }
-                    } else {
-                        elementoEncontrado.click();
-                    }
-                    
-                    index++;
-                }, 1500);
+            if (elementosClicaveis.length > 0) {
+                elementosClicaveis.forEach(el => {
+                    el.click();
+                    el.focus();
+                });
             } else {
-                showToast(`Resposta não encontrada! (${index + 1}/${respostasCorretas.length})`);
-                index++;
+                div.click();
             }
-        } else {
-            clearInterval(interval);
-            showToast('Finalizado! Todos os cliques foram feitos!');
-            console.log('by: henryucker - 1° ano');
-        }
+
+            console.log(`Resposta ${idx + 1} clicada:`, div);
+        }, 1800);
     }
 
-    function checkToastifyAndStart() {
-        if (typeof Toastify !== 'undefined') {
-            showToast('Automação iniciada!');
-            interval = setInterval(clickNext, 2000);
-        } else {
-            setTimeout(checkToastifyAndStart, 100);
-        }
-    }
-
-    checkToastifyAndStart();
+    showToast('🚀 Iniciando automação...');
+    interval = setInterval(processarResposta, 2500);
 }
+
+loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastify-css');
+loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastify-js', () => {
+    showToast('📚 Recursos carregados! Iniciando em 2 segundos...');
+    setTimeout(autoClick, 2000);
+});
