@@ -47,15 +47,27 @@ function autoClick() {
 
   function clickNext() {
     if (index < lessons.length) {
-      const element = document.querySelector(lessons[index]);
+      const selector = lessons[index];
+      const element = document.querySelector(selector);
+
       if (element) {
+        const labelText = element.textContent.trim() || `item ${index + 1}`;
+
+        // Scroll até o elemento
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        showToast(`Clicando em "${labelText}"...`);
+
+        // Espera o scroll terminar antes de clicar
         setTimeout(() => {
           element.click();
-          showToast(`Clicando no ${element.textContent.trim()}`);
           index++;
-          setTimeout(clickNext, 2000);
-        }, 1000);
+          setTimeout(clickNext, 2000); // Tempo entre cliques
+        }, 1500); // Tempo para o scroll terminar
+      } else {
+        showToast(`Elemento ${selector} não encontrado!`);
+        index++;
+        setTimeout(clickNext, 1000);
       }
     } else {
       alert('Finalizado! Todos os cliques foram feitos!\n\nby: henryucker - 1° ano');
