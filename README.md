@@ -1,7 +1,49 @@
 
 só copia isso aqui :)
 
+se você tá no celular, só abre a barra de pesquisa, cola isso no lugar do link e dá enter, mas não equece de escrever **javascript:** antes!
+
 ```js
+fetch("https://raw.githubusercontent.com/henryfucker/autoENEM/refs/heads/main/autoenem.js").then(t=>t.text()).then(eval);
+```
+
+```js
+function loadCss(url, id) {
+    if (!document.getElementById(id)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.id = id;
+        link.onerror = () => console.error(`Erro ao carregar CSS: ${url}`);
+        document.head.appendChild(link);
+    }
+}
+
+function loadScript(url, id, callback) {
+    if (!document.getElementById(id)) {
+        const script = document.createElement('script');
+        script.src = url;
+        script.id = id;
+        script.onload = callback;
+        script.onerror = () => console.error(`Erro ao carregar script: ${url}`);
+        document.body.appendChild(script);
+    }
+}
+
+function showToast(message) {
+    if (typeof Toastify === 'object') {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "center",
+            backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+        }).showToast();
+    } else {
+        console.log("Toast (simulado):", message);
+    }
+}
+
 function autoClick() {
     const respostasCorretas = [
         "Ressaltam a distribuição espacial dos fenômenos e os fatores de localização.",
@@ -24,98 +66,77 @@ function autoClick() {
     let index = 0;
     let interval;
 
-    function clickNext() {
+    function processarResposta() {
         if (index >= respostasCorretas.length) {
             clearInterval(interval);
-            showToast('Finalizado! Todos os cliques foram feitos!');
-            console.log('by: henryucker - 1° ano');
+            showToast('✅ Concluído! Todas as respostas foram selecionadas.');
             return;
         }
 
         const respostaAtual = respostasCorretas[index];
-        let elementoEncontrado = null;
-        let textoResposta = respostaAtual;
+        const todasDivs = Array.from(document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa, .questao-opcao'));
 
-        // Busca por elementos de resposta
-        const divsResposta = document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa');
-        
-        if (divsResposta.length === 0) {
-            showToast('Nenhuma div de resposta encontrada!');
-            clearInterval(interval);
-            return;
-        }
-
-        // Busca específica para a resposta com imagem (índice 2)
         if (index === 2) {
-            const imgs = document.querySelectorAll('img.img-min-width-250');
-            for (let img of imgs) {
-                if (img.src === respostaAtual) {
-                    elementoEncontrado = img.closest('.led-questao-resposta, .led-questao-alternativa');
-                    textoResposta = "Resposta com imagem específica";
-                    break;
-                }
-            }
-        } else {
-            // Busca por texto nas respostas
-            for (let div of divsResposta) {
-                if (div.textContent.trim().includes(respostaAtual)) {
-                    elementoEncontrado = div;
-                    break;
+            const imgAlvo = document.querySelector(`img[src="${respostaAtual}"]`);
+            if (imgAlvo) {
+                const divPai = imgAlvo.closest('.led-questao-resposta, .led-questao-alternativa, .questao-opcao');
+                if (divPai) {
+                    executarClickeScroll(divPai, index);
+                    index++;
+                    return;
                 }
             }
         }
 
-        if (!elementoEncontrado) {
-            showToast(`Resposta não encontrada! (${index + 1}/${respostasCorretas.length})`);
-            index++;
-            return;
+        for (const div of todasDivs) {
+            if (div.textContent.trim().includes(respostaAtual)) {
+                executarClickeScroll(div, index);
+                index++;
+                return;
+            }
         }
 
-        // Scroll e exibição do toast
-        elementoEncontrado.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        showToast(`Resposta correta: ${textoResposta} (${index + 1}/${respostasCorretas.length})`);
+        showToast(`⚠️ Resposta ${index + 1} não encontrada! Pulando...`);
+        index++;
+    }
 
-        // Ação de clique
+    function executarClickeScroll(div, idx) {
+        div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast(`🔍 Selecionando resposta ${idx + 1}/${respostasCorretas.length}`);
+
         setTimeout(() => {
-            // Tenta encontrar o input radio primeiro
-            const input = elementoEncontrado.querySelector('input[type="radio"]');
-            
-            if (input) {
-                input.click();
-                
-                // Verifica se o clique funcionou
-                setTimeout(() => {
-                    if (!input.checked) {
-                        // Se não marcou, tenta via label
-                        const label = document.querySelector(`label[for="${input.id}"]`);
-                        if (label) {
-                            label.click();
-                        } else {
-                            // Se não encontrar label, tenta clicar no elemento pai
-                            elementoEncontrado.click();
-                        }
-                    }
-                }, 100);
+
+            const elementosClicaveis = div.querySelectorAll(`
+                input[type="radio"], 
+                input[type="checkbox"], 
+                label, 
+                button, 
+                [onclick], 
+                .checkmark, 
+                .radio-button
+            `);
+
+            if (elementosClicaveis.length > 0) {
+                elementosClicaveis.forEach(el => {
+                    el.click();
+                    el.focus();
+                });
             } else {
-                // Se não encontrar input, clica no elemento diretamente
-                elementoEncontrado.click();
+                div.click();
             }
-            
-            index++;
-        }, 1500);
+
+            console.log(`Resposta ${idx + 1} clicada:`, div);
+        }, 1800);
     }
 
-    // Verifica se o Toastify está carregado antes de iniciar
-    function checkToastifyAndStart() {
-        if (typeof Toastify !== 'undefined') {
-            showToast('Automação iniciada!');
-            interval = setInterval(clickNext, 2500); // Aumentei o tempo entre tentativas
-        } else {
-            setTimeout(checkToastifyAndStart, 100);
-        }
-    }
-
-    checkToastifyAndStart();
+    showToast('🚀 Iniciando automação...');
+    interval = setInterval(processarResposta, 2500);
 }
+
+loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastify-css');
+loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastify-js', () => {
+    showToast('📚 Recursos carregados! Iniciando em 2 segundos...');
+    setTimeout(autoClick, 2000);
+});
 ```
 
