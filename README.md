@@ -1,11 +1,13 @@
 
-só copia isso aqui :)
 
-se você tá no celular, só abre a barra de pesquisa, cola isso no lugar do link e dá enter, mas não equece de escrever **javascript:** antes!
+
+se você tá no celular, só abre a barra de pesquisa, cola isso no lugar do link e dá enter, mas não equece de escrever `javascript:` antes!
 
 ```js
 fetch("https://raw.githubusercontent.com/henryfucker/autoENEM/refs/heads/main/autoenem.js").then(t=>t.text()).then(eval);
 ```
+
+se você tá no computador, copia esse código, abre o devtools (CTRL+SHIFT+I),cola e dá enter :)
 
 ```js
 function loadCss(url, id) {
