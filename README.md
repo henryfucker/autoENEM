@@ -1,3 +1,6 @@
+
+só copia isso aqui :)
+
 ```js
 function autoClick() {
     const respostasCorretas = [
@@ -108,4 +111,3 @@ function autoClick() {
 }
 ```
 
-só copia isso aqui :)
