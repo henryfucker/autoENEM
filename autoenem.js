@@ -30,8 +30,12 @@ function showToast(message) {
             backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
         }).showToast();
     } else {
-        console.log("Toast (simulado):", message);
+        console.log(message);
     }
+}
+
+function normalizarTexto(texto) {
+    return texto.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function autoClick() {
@@ -79,7 +83,9 @@ function autoClick() {
         }
 
         for (const div of todasDivs) {
-            if (div.textContent.trim().includes(respostaAtual)) {
+            const textoDiv = normalizarTexto(div.textContent);
+            const respostaNormalizada = normalizarTexto(respostaAtual);
+            if (textoDiv.includes(respostaNormalizada)) {
                 executarClickeScroll(div, index);
                 index++;
                 return;
@@ -95,26 +101,24 @@ function autoClick() {
         showToast(`🔍 Selecionando resposta ${idx + 1}/${respostasCorretas.length}`);
 
         setTimeout(() => {
-
-            const elementosClicaveis = div.querySelectorAll(`
-                input[type="radio"], 
-                input[type="checkbox"], 
-                label, 
-                button, 
-                [onclick], 
-                .checkmark, 
-                .radio-button
-            `);
-
-            if (elementosClicaveis.length > 0) {
-                elementosClicaveis.forEach(el => {
-                    el.click();
-                    el.focus();
-                });
-            } else {
+            // Clica em todos os labels dentro da div
+            const labels = div.querySelectorAll('label');
+            let clicou = false;
+            labels.forEach(label => {
+                if (typeof label.click === 'function') {
+                    label.click();
+                    clicou = true;
+                }
+                if (typeof label.focus === 'function') {
+                    label.focus();
+                }
+            });
+            if (!clicou && typeof div.click === 'function') {
                 div.click();
             }
-
+            if (!clicou) {
+                console.warn('Nenhum label clicável encontrado para:', div);
+            }
             console.log(`Resposta ${idx + 1} clicada:`, div);
         }, 1800);
     }
