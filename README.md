@@ -25,83 +25,91 @@ function autoClick() {
     let interval;
 
     function clickNext() {
-        if (index < respostasCorretas.length) {
-            const divsResposta = document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa');
-            
-            if (divsResposta.length === 0) {
-                showToast('Nenhuma div de resposta encontrada!');
-                clearInterval(interval);
-                return;
-            }
-
-            let elementoEncontrado = null;
-            const respostaAtual = respostasCorretas[index];
-            
-            for (let div of divsResposta) {
-                if (index === 2) {
-                    const img = div.querySelector('img.img-min-width-250');
-                    if (img && img.src === respostaAtual) {
-                        elementoEncontrado = div;
-                        break;
-                    }
-                } else {
-                    const textoDiv = div.textContent.trim();
-                    if (textoDiv.includes(respostaAtual)) {
-                        elementoEncontrado = div;
-                        break;
-                    }
-                }
-            }
-
-            if (elementoEncontrado) {
-                elementoEncontrado.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                let textoResposta = respostaAtual;
-                if (index === 2) {
-                    textoResposta = "Resposta com imagem específica";
-                } else if (!textoResposta) {
-                    textoResposta = elementoEncontrado.textContent.trim().substring(0, 50) + '...';
-                }
-
-                showToast(`Resposta correta: ${textoResposta} (${index + 1}/${respostasCorretas.length})`);
-
-                setTimeout(() => {
-                    // Primeiro tenta encontrar o input dentro do elemento
-                    const input = elementoEncontrado.querySelector('input[type="radio"]');
-                    
-                    if (input) {
-                        // Clique direto no input (mais confiável)
-                        input.click();
-                        
-                        // Se não funcionar, tenta encontrar o label associado
-                        if (!input.checked) {
-                            const label = document.querySelector(`label[for="${input.id}"]`);
-                            if (label) {
-                                label.click();
-                            }
-                        }
-                    } else {
-                        // Se não encontrar input, tenta clicar no próprio elemento
-                        elementoEncontrado.click();
-                    }
-                    
-                    index++;
-                }, 1500);
-            } else {
-                showToast(`Resposta não encontrada! (${index + 1}/${respostasCorretas.length})`);
-                index++;
-            }
-        } else {
+        if (index >= respostasCorretas.length) {
             clearInterval(interval);
             showToast('Finalizado! Todos os cliques foram feitos!');
             console.log('by: henryucker - 1° ano');
+            return;
         }
+
+        const respostaAtual = respostasCorretas[index];
+        let elementoEncontrado = null;
+        let textoResposta = respostaAtual;
+
+        // Busca por elementos de resposta
+        const divsResposta = document.querySelectorAll('.led-questao-resposta, .led-questao-alternativa');
+        
+        if (divsResposta.length === 0) {
+            showToast('Nenhuma div de resposta encontrada!');
+            clearInterval(interval);
+            return;
+        }
+
+        // Busca específica para a resposta com imagem (índice 2)
+        if (index === 2) {
+            const imgs = document.querySelectorAll('img.img-min-width-250');
+            for (let img of imgs) {
+                if (img.src === respostaAtual) {
+                    elementoEncontrado = img.closest('.led-questao-resposta, .led-questao-alternativa');
+                    textoResposta = "Resposta com imagem específica";
+                    break;
+                }
+            }
+        } else {
+            // Busca por texto nas respostas
+            for (let div of divsResposta) {
+                if (div.textContent.trim().includes(respostaAtual)) {
+                    elementoEncontrado = div;
+                    break;
+                }
+            }
+        }
+
+        if (!elementoEncontrado) {
+            showToast(`Resposta não encontrada! (${index + 1}/${respostasCorretas.length})`);
+            index++;
+            return;
+        }
+
+        // Scroll e exibição do toast
+        elementoEncontrado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast(`Resposta correta: ${textoResposta} (${index + 1}/${respostasCorretas.length})`);
+
+        // Ação de clique
+        setTimeout(() => {
+            // Tenta encontrar o input radio primeiro
+            const input = elementoEncontrado.querySelector('input[type="radio"]');
+            
+            if (input) {
+                input.click();
+                
+                // Verifica se o clique funcionou
+                setTimeout(() => {
+                    if (!input.checked) {
+                        // Se não marcou, tenta via label
+                        const label = document.querySelector(`label[for="${input.id}"]`);
+                        if (label) {
+                            label.click();
+                        } else {
+                            // Se não encontrar label, tenta clicar no elemento pai
+                            elementoEncontrado.click();
+                        }
+                    }
+                }, 100);
+            } else {
+                // Se não encontrar input, clica no elemento diretamente
+                elementoEncontrado.click();
+            }
+            
+            index++;
+        }, 1500);
     }
 
+    // Verifica se o Toastify está carregado antes de iniciar
     function checkToastifyAndStart() {
         if (typeof Toastify !== 'undefined') {
             showToast('Automação iniciada!');
-            interval = setInterval(clickNext, 2000);
+            interval = setInterval(clickNext, 2500); // Aumentei o tempo entre tentativas
         } else {
             setTimeout(checkToastifyAndStart, 100);
         }
